@@ -4,7 +4,7 @@ project(olm VERSION 3.2.8 LANGUAGES CXX C)
 
 option(OLM_TESTS "Build tests" ON)
 option(BUILD_SHARED_LIBS "Build as a shared library" ON)
-option(OLM_USE_OPENSSL "Use OpenSSL instead of bundled crypto-algorithms" OFF)
+option(OLM_USE_OPENSSL "Use OpenSSL instead of bundled crypto-algorithms and curve25519-donna" OFF)
 option(OLM_USE_LIBRESSL "Use LibreSSL instead of bundled crypto-algorithms" OFF)
 
 add_definitions(-DOLMLIB_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
@@ -47,9 +47,7 @@ add_library(olm
     src/megolm.c
     src/olm.cpp
     src/outbound_group_session.c
-    src/pickle_encoding.c
-
-    lib/curve25519-donna/curve25519-donna.c)
+    src/pickle_encoding.c)
 add_library(Olm::Olm ALIAS olm)
 
 if(OLM_USE_OPENSSL)
@@ -60,8 +58,11 @@ elseif(OLM_USE_LIBRESSL)
     find_package(LibreSSL REQUIRED)
     target_link_libraries(olm LibreSSL::Crypto)
     target_compile_definitions(olm PRIVATE OLM_USE_LIBRESSL)
+    target_sources(olm PRIVATE
+        lib/curve25519-donna/curve25519-donna.c)
 else()
     target_sources(olm PRIVATE
+        lib/curve25519-donna/curve25519-donna.c
         lib/crypto-algorithms/aes.c
         lib/crypto-algorithms/sha256.c)
 endif()
