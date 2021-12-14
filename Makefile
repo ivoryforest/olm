@@ -84,8 +84,8 @@ CPPFLAGS += -Iinclude -Ilib \
     -DOLMLIB_VERSION_PATCH=$(PATCH)
 
 # we rely on <stdint.h>, which was introduced in C99
-CFLAGS += -Wall -Werror -std=c99 -DOLM_USE_OPENSSL=ON
-CXXFLAGS += -Wall -Werror -std=c++11 -DOLM_USE_OPENSSL=ON
+CFLAGS += -Wall -Werror -std=c99
+CXXFLAGS += -Wall -Werror -std=c++11
 LDFLAGS += -Wall -Werror -lcrypto
 
 CFLAGS_NATIVE = -fPIC
