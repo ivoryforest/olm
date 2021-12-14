@@ -37,9 +37,6 @@ JS_EXTERNS := javascript/externs.js
 PUBLIC_HEADERS := include/olm/olm.h include/olm/outbound_group_session.h include/olm/inbound_group_session.h include/olm/pk.h include/olm/sas.h include/olm/error.h include/olm/olm_export.h
 
 SOURCES := $(wildcard src/*.cpp) $(wildcard src/*.c) \
-    lib/crypto-algorithms/sha256.c \
-    lib/crypto-algorithms/aes.c \
-    lib/curve25519-donna/curve25519-donna.c
 
 FUZZER_SOURCES := $(wildcard fuzzing/fuzzers/fuzz_*.cpp) $(wildcard fuzzing/fuzzers/fuzz_*.c)
 TEST_SOURCES := $(wildcard tests/test_*.cpp) $(wildcard tests/test_*.c)
@@ -87,9 +84,9 @@ CPPFLAGS += -Iinclude -Ilib \
     -DOLMLIB_VERSION_PATCH=$(PATCH)
 
 # we rely on <stdint.h>, which was introduced in C99
-CFLAGS += -Wall -Werror -std=c99
-CXXFLAGS += -Wall -Werror -std=c++11
-LDFLAGS += -Wall -Werror
+CFLAGS += -Wall -Werror -std=c99 -DOLM_USE_OPENSSL=ON
+CXXFLAGS += -Wall -Werror -std=c++11 -DOLM_USE_OPENSSL=ON
+LDFLAGS += -Wall -Werror -lcrypto
 
 CFLAGS_NATIVE = -fPIC
 CXXFLAGS_NATIVE = -fPIC
