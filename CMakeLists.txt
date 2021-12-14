@@ -4,7 +4,7 @@ project(olm VERSION 3.2.8 LANGUAGES CXX C)
 
 option(OLM_TESTS "Build tests" ON)
 option(BUILD_SHARED_LIBS "Build as a shared library" ON)
-option(OLM_USE_OPENSSL "Use OpenSSL instead of bundled crypto-algorithms and curve25519-donna" OFF)
+option(OLM_USE_OPENSSL "Use OpenSSL instead of bundled crypto-algorithms and curve25519-donna" ON)
 option(OLM_USE_LIBRESSL "Use LibreSSL instead of bundled crypto-algorithms" OFF)
 
 add_definitions(-DOLMLIB_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
