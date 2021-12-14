@@ -34,8 +34,16 @@ static const std::size_t SHA256_BLOCK_LENGTH = 64;
 static const std::uint8_t HKDF_DEFAULT_SALT[32] = {};
 
 template <typename T>
-static T checked(T val) {
+inline T checked(T val) {
     if (!val) {
+        abort();
+    }
+    return val;
+}
+
+template <>
+inline int checked(int val) {
+    if (val <= 0) {
         abort();
     }
     return val;
