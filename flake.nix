@@ -2,6 +2,7 @@
   description = "An implementation of the Double Ratchet cryptographic ratchet";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs-emscripten.url = "github:duxovni/nixpkgs/emscripten";
   # We can't use the current stable release because of
   # https://github.com/emscripten-core/emscripten/issues/14995
   inputs.flake-utils.url = "github:numtide/flake-utils";
@@ -10,7 +11,7 @@
     flake = false;
   };
 
-  outputs = { self, nixpkgs, flake-utils, npmlock2nix }:
+  outputs = { self, nixpkgs, nixpkgs-emscripten, flake-utils, npmlock2nix }:
    (
       flake-utils.lib.eachDefaultSystem (system:
         let
@@ -19,6 +20,7 @@
             overlays = [
               (final: prev: {
                 npmlock2nix = final.callPackage npmlock2nix {};
+                inherit (import nixpkgs-emscripten { inherit (prev) system config; }) emscripten;
               })
             ];
           };
