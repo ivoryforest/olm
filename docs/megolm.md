@@ -28,63 +28,24 @@ channels. Provided that peer-to-peer channel provides authenticity of the
 messages to the participants and deniability of the messages to third parties,
 the Megolm session will inherit those properties.
 
-## The Megolm ratchet algorithm
+## The Megolm V2 ratchet algorithm
 
-The Megolm ratchet $`R_i`$ consists of four parts, $`R_{i,j}`$ for
-$`j \in {0,1,2,3}`$. The length of each part depends on the hash function
-in use (256 bits for this version of Megolm).
+The Megolm V2 ratchet $`R_i`$ is based on a single key whose length depends
+on the hash function in use (256 bits for this version of Megolm).
 
-The ratchet is initialised with cryptographically-secure random data, and
-advanced as follows:
+The key is initialised with cryptographically-secure random data, and
+after each use is advanced by setting $`R_{i+1} = H(R_i)`$, where $`H`$ is
+a hash function.
 
-```math
-\begin{aligned}
-R_{i,0} &=
-  \begin{cases}
-  H_0\left(R_{2^{24}(n-1),0}\right) &\text{if }\exists n | i = 2^{24}n\\
-  R_{i-1,0} &\text{otherwise}
-  \end{cases}\\
-R_{i,1} &=
-  \begin{cases}
-  H_1\left(R_{2^{24}(n-1),0}\right) &\text{if }\exists n | i = 2^{24}n\\
-  H_1\left(R_{2^{16}(m-1),1}\right) &\text{if }\exists m | i = 2^{16}m\\
-  R_{i-1,1} &\text{otherwise}
-  \end{cases}\\
-R_{i,2} &=
-  \begin{cases}
-  H_2\left(R_{2^{24}(n-1),0}\right) &\text{if }\exists n | i = 2^{24}n\\
-  H_2\left(R_{2^{16}(m-1),1}\right) &\text{if }\exists m | i = 2^{16}m\\
-  H_2\left(R_{2^8(p-1),2}\right) &\text{if }\exists p | i = 2^8p\\
-  R_{i-1,2} &\text{otherwise}
-  \end{cases}\\
-R_{i,3} &=
-  \begin{cases}
-  H_3\left(R_{2^{24}(n-1),0}\right) &\text{if }\exists n | i = 2^{24}n\\
-  H_3\left(R_{2^{16}(m-1),1}\right) &\text{if }\exists m | i = 2^{16}m\\
-  H_3\left(R_{2^8(p-1),2}\right) &\text{if }\exists p | i = 2^8p\\
-  H_3\left(R_{i-1,3}\right) &\text{otherwise}
-  \end{cases}
-\end{aligned}
-```
-
-where $`H_0`$, $`H_1`$, $`H_2`$, and $`H_3`$ are different hash
-functions. In summary: every $`2^8`$ iterations, $`R_{i,3}`$ is
-reseeded from $`R_{i,2}`$. Every $`2^{16}`$ iterations, $`R_{i,2}`$
-and $`R_{i,3}`$ are reseeded from $`R_{i,1}`$. Every $`2^{24}`$
-iterations, $`R_{i,1}`$, $`R_{i,2}`$ and $`R_{i,3}`$ are reseeded
-from $`R_{i,0}`$.
-
-The complete ratchet value, $`R_{i}`$, is hashed to generate the keys used
-to encrypt each message. This scheme allows the ratchet to be advanced an
-arbitrary amount forwards while needing at most 1020 hash computations.  A
-client can decrypt chat history onwards from the earliest value of the ratchet
+The ratchet value, $`R_{i}`$, is hashed to generate the keys used
+to encrypt each message. This scheme allows a client
+to decrypt chat history onwards from the earliest value of the ratchet
 it is aware of, but cannot decrypt history from before that point without
 reversing the hash function.
 
 This allows a participant to share its ability to decrypt chat history with
 another from a point in the conversation onwards by giving a copy of the
 ratchet at that point in the conversation.
-
 
 ## The Megolm protocol
 
@@ -95,8 +56,7 @@ session consists of three parts:
 
 * a 32 bit counter, $`i`$.
 * an [Ed25519][] keypair, $`K`$.
-* a ratchet, $`R_i`$, which consists of four 256-bit values,
-  $`R_{i,j}`$ for $`j \in {0,1,2,3}`$.
+* a ratchet, $`R_i`$, consisting of a single 256-bit value.
 
 The counter $`i`$ is initialised to $`0`$. A new Ed25519 keypair is
 generated for $`K`$. The ratchet is simply initialised with 1024 bits of
@@ -157,18 +117,16 @@ received the session data.
 ### Advancing the ratchet
 
 After each message is encrypted, the ratchet is advanced. This is done as
-described in [The Megolm ratchet algorithm](#the-megolm-ratchet-algorithm), using the following definitions:
+described in [The Megolm V2 ratchet algorithm](#the-megolm-v2-ratchet-algorithm),
+using the following definition for $`H`$:
 
 ```math
 \begin{aligned}
-    H_0(A) &\equiv \operatorname{HMAC}(A,\text{``\char`\\x00"}) \\
-    H_1(A) &\equiv \operatorname{HMAC}(A,\text{``\char`\\x01"}) \\
-    H_2(A) &\equiv \operatorname{HMAC}(A,\text{``\char`\\x02"}) \\
-    H_3(A) &\equiv \operatorname{HMAC}(A,\text{``\char`\\x03"}) \\
+    H(A) &\equiv \operatorname{HMAC}(A,\text{``\char`\\x00"}) \\
 \end{aligned}
 ```
 
-where $`\operatorname{HMAC}(A, T)`$ is the HMAC-SHA-256 of ``T``, using ``A`` as the
+where $`\operatorname{HMAC}(A, T)`$ is the HMAC-SHA-256 of $`T`$, using $`A`$ as the
 key.
 
 For outbound sessions, the updated ratchet and counter are stored in the
@@ -191,16 +149,16 @@ session.
 The session sharing format is as follows:
 
 ```
-+---+----+--------+--------+--------+--------+------+-----------+
-| V | i  | R(i,0) | R(i,1) | R(i,2) | R(i,3) | Kpub | Signature |
-+---+----+--------+--------+--------+--------+------+-----------+
-0   1    5        37       69      101      133    165         229   bytes
++---+----+------+------+-----------+
+| V | i  | R(i) | Kpub | Signature |
++---+----+------+------+-----------+
+0   1    5      37     69         129   bytes          
 ```
 
-The version byte, ``V``, is ``"\x02"``.
+The version byte, ``V``, is ``"\x04"``.
 
 This is followed by the ratchet index, $`i`$, which is encoded as a
-big-endian 32-bit integer; the ratchet values $`R_{i,j}`$; and the public
+big-endian 32-bit integer; the ratchet value $`R_{i}`$; and the public
 part of the Ed25519 keypair $`K`$.
 
 The data is then signed using the Ed25519 keypair, and the 64-byte signature is
@@ -221,16 +179,16 @@ format](#session-sharing-format) except for dropping the signature.
 The Megolm session export format is thus as follows:
 
 ```
-+---+----+--------+--------+--------+--------+------+
-| V | i  | R(i,0) | R(i,1) | R(i,2) | R(i,3) | Kpub |
-+---+----+--------+--------+--------+--------+------+
-0   1    5        37       69      101      133    165   bytes
++---+----+------+------+
+| V | i  | R(i) | Kpub |
++---+----+------+------+
+0   1    5      37     69  bytes
 ```
 
-The version byte, ``V``, is ``"\x01"``.
+The version byte, ``V``, is ``"\x03"``.
 
 This is followed by the ratchet index, $`i`$, which is encoded as a
-big-endian 32-bit integer; the ratchet values $`R_{i,j}`$; and the public
+big-endian 32-bit integer; the ratchet value $`R_{i}`$; and the public
 part of the Ed25519 keypair $`K`$.
 
 ### Message format
