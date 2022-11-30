@@ -152,7 +152,7 @@ The session sharing format is as follows:
 +---+----+------+------+-----------+
 | V | i  | R(i) | Kpub | Signature |
 +---+----+------+------+-----------+
-0   1    5      37     69         129   bytes          
+0   1    5      37     69         133   bytes          
 ```
 
 The version byte, ``V``, is ``"\x04"``.
