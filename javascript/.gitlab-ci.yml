@@ -19,6 +19,18 @@ build:js:
       - javascript/index.d.ts
       - javascript/exported_functions.json
 
+build:js-nix:
+  cache:
+    paths:
+      - /nix/store
+  image: docker.io/nixos/nix
+  stage: build
+  script:
+    - nix --extra-experimental-features nix-command --extra-experimental-features flakes build
+  artifacts:
+    paths:
+      - result/javascript
+
 test:js:
   stage: test
   needs:
