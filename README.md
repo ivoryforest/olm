@@ -16,8 +16,7 @@ back to 2015. It is not written in memory-safe langauges (C and C++11),
 resulting in several CVEs over the years (e.g. CVE-2021-34813 and
 CVE-2021-44538).  It also depends on simplistic cryptography primitive
 implementations which are intended for pragmatic and education purposes rather
-than security - e.g. [Brad Conte's crypto-algorithms]
-(lib/crypto-algorithms/README.md).
+than security - e.g. [Brad Conte's crypto-algorithms](lib/crypto-algorithms/README.md).
 
 As a result, we rewrote libolm in Rust in December 2021 - the result being
 [vodozemac](https://github.com/matrix-org/vodozemac), and [announced it as the
@@ -39,7 +38,7 @@ The key benefits of vodozemac are:
 >   and within the context of larger Rust programs (such as those building on
 >   matrix-rust-sdk).
 > * Performance - vodozemac benchmarks roughly 5-6x faster than libolm on
-    typical hardware
+>   typical hardware
 > * Better primitives - vodozemac is built on the best practice cryptographic
 >   primitives from the Rust community, rather than the generic Brad Conte
 >   primitives used by libolm.
